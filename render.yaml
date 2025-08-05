@@ -9,7 +9,7 @@ services:
     branch: main
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeploy: false  # Disabled - using GitHub Actions for deployment
     buildCommand: ""
     startCommand: ""
     envVars:
