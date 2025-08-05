@@ -1,0 +1,27 @@
+# Environment variables
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Python package info
+*.egg-info/
+build/
+dist/
+
+# Virtual environment
+.venv/
+
+# Testing
+.pytest_cache/
+
+# IDE
+.vscode/
+
+# OS files
+.DS_Store
+
+# Project specific
+.implementation_summary.md

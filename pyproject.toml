@@ -1,0 +1,24 @@
+[project]
+name = "fastapi-email-assistant-tutorial"
+version = "0.1.0"
+description = "Personal Email Management Agent"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "langchain>=0.3.9",
+    "langchain-core>=0.3.59",
+    "langchain-openai",
+    "langgraph>=0.4.2",
+    "langsmith>=0.3.4",
+    "python-dotenv",
+    "rich>=13.0.0",
+    "pydantic>=2.0.0",
+    "ipython>=9.4.0",
+    "pytest>=8.4.1",
+    "langgraph-checkpoint-redis>=0.0.8",
+]
+
+[build-system]
+requires = ["setuptools>=73.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
