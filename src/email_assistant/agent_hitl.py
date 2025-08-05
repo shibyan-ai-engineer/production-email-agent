@@ -1,5 +1,6 @@
 """Email assistant agent with Human-in-the-Loop (HITL) capabilities."""
 
+import os
 from typing import Literal
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
@@ -528,8 +529,11 @@ def get_compiled_email_assistant_hitl():
     Returns:
         Compiled StateGraph with Redis store and checkpointer
     """
-    with RedisStore.from_conn_string("redis://localhost:6379") as store, \
-         RedisSaver.from_conn_string("redis://localhost:6379") as checkpointer:
+    # Get Redis URL from environment variable, fallback to localhost for development
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+    
+    with RedisStore.from_conn_string(redis_url) as store, \
+         RedisSaver.from_conn_string(redis_url) as checkpointer:
         store.setup()
         checkpointer.setup()
         return email_assistant_hitl.compile(checkpointer=checkpointer, store=store)

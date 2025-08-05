@@ -1,0 +1,23 @@
+services:
+  # FastAPI Web Service
+  - type: web
+    name: email-assistant
+    runtime: docker
+    plan: free
+    region: oregon
+    repo: https://github.com/shibyan-ai-engineer/production-email-agent
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: LANGSMITH_API_KEY
+        sync: false
+      - key: LANGSMITH_TRACING
+        value: "true"
+      - key: LANGSMITH_ENDPOINT
+        value: "https://api.smith.langchain.com"
+      - key: LANGSMITH_PROJECT
+        value: "LangGraph-Production-Agent"

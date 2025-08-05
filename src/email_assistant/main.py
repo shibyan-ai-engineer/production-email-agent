@@ -9,6 +9,8 @@ from .schemas import (
 from .agent import process_email
 from langgraph.types import Command
 from .agent_hitl import compiled_email_assistant_hitl
+import os
+
 
 def _get_allowed_actions(config: Dict[str, bool]) -> list[str]:
     """Extract allowed actions from interrupt config."""
@@ -306,9 +308,10 @@ async def get_hitl_thread_state(thread_id: str) -> Dict[str, Any]:
 
 
 if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
     uvicorn.run(
         "src.email_assistant.main:app",
         host="0.0.0.0",
-        port=8000,
+        port=port,
         reload=True
     )

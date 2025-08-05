@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # FastAPI Application (for local development/testing)
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - REDIS_URL=${REDIS_URL}  # Use your Upstash Redis URL from .env
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY}
+      - LANGSMITH_TRACING=true
+      - LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+      - LANGSMITH_PROJECT=LangGraph-Local-Development
+      - PORT=8000
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+
+  # Optional: Local Redis Stack for development (comment out if using Upstash)
+  # redis:
+  #   image: redis/redis-stack-server:latest
+  #   ports:
+  #     - "6379:6379"
+  #   environment:
+  #     - REDIS_ARGS=--save 60 1 --loglevel warning
+  #   volumes:
+  #     - redis_data:/data
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 5s
+  #     timeout: 3s
+  #     retries: 5
+  #   restart: unless-stopped
+
+# volumes:
+#   redis_data:
