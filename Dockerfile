@@ -19,12 +19,6 @@ RUN pip install uv
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml uv.lock ./
-
-# Install dependencies and the package itself in development mode
-RUN uv sync --frozen
-
 # Production stage
 FROM python:3.11-slim AS production
 
@@ -33,21 +27,28 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH"
 
+# Install system dependencies needed at runtime
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install UV package manager
+RUN pip install uv
+
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Set working directory
 WORKDIR /app
 
-# Copy virtual environment from base stage
-COPY --from=base /app/.venv /app/.venv
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
 # Copy application code
 COPY src/ ./src/
-COPY pyproject.toml ./
 
-# Install the package in editable mode
-RUN /app/.venv/bin/pip install -e .
+# Install dependencies and the package in editable mode
+RUN uv sync --frozen
 
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app

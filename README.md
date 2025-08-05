@@ -55,7 +55,7 @@ A Python-based intelligent email management agent that automatically triages ema
 ### Start the API Server
 
 ```bash
-uvicorn src.email_assistant.main:app --reload
+uv run uvicorn src.email_assistant.main:app --reload --port 8000
 ```
 
 The API will be available at `http://localhost:8000`
