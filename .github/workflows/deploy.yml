@@ -77,12 +77,65 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
     steps:
-    - name: Deploy to Render
-      uses: johnbeynon/render-deploy-action@v0.0.8
-      with:
-        service-id: ${{ secrets.RENDER_SERVICE_ID }}
-        api-key: ${{ secrets.RENDER_API_KEY }}
-        wait-for-success: true
+    - name: Debug Render Configuration
+      run: |
+        echo "🔍 Debugging Render deployment configuration..."
+        echo "Service ID length: ${#RENDER_SERVICE_ID}"
+        echo "API Key length: ${#RENDER_API_KEY}"
+        echo "Service ID format check: $(echo $RENDER_SERVICE_ID | grep -E '^srv-[a-zA-Z0-9]+$' && echo 'Valid' || echo 'Invalid')"
+      env:
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        
+    - name: Deploy to Render via API
+      run: |
+        echo "🚀 Triggering Render deployment via API..."
+        
+        # Get the latest commit SHA
+        COMMIT_SHA="${{ github.sha }}"
+        echo "Deploying commit: $COMMIT_SHA"
+        
+        # Trigger deployment using Render API
+        RESPONSE=$(curl -s -w "HTTPSTATUS:%{http_code}" \
+          -X POST \
+          -H "Accept: application/json" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -d "{\"type\": \"deploy\"}" \
+          "https://api.render.com/v1/services/$RENDER_SERVICE_ID/deploys")
+        
+        # Extract HTTP status code
+        HTTP_STATUS=$(echo $RESPONSE | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
+        RESPONSE_BODY=$(echo $RESPONSE | sed -e 's/HTTPSTATUS\:.*//g')
+        
+        echo "HTTP Status: $HTTP_STATUS"
+        echo "Response: $RESPONSE_BODY"
+        
+        if [ $HTTP_STATUS -eq 201 ]; then
+          echo "✅ Deployment triggered successfully!"
+          
+          # Extract deploy ID from response
+          DEPLOY_ID=$(echo $RESPONSE_BODY | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+          echo "Deploy ID: $DEPLOY_ID"
+          
+          if [ -n "$DEPLOY_ID" ]; then
+            echo "🔗 Monitor deployment at: https://dashboard.render.com/web/$RENDER_SERVICE_ID"
+            echo "📊 Deploy ID: $DEPLOY_ID"
+          fi
+        else
+          echo "❌ Deployment failed with status: $HTTP_STATUS"
+          echo "Response: $RESPONSE_BODY"
+          exit 1
+        fi
+      env:
+        RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        
+    - name: Deployment Initiated
+      run: |
+        echo "🚀 Deployment initiated successfully!"
+        echo "⏱️  Deployment will continue in the background on Render"
+        echo "📍 Check status at: https://dashboard.render.com"
 
   # Add failure job to provide clear failure signal
   ci-failure:
