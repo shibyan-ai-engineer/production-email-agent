@@ -19,14 +19,12 @@ RUN pip install uv
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files first (for better Docker layer caching)
+# Copy all files (dependencies need src/ directory to exist)
 COPY pyproject.toml uv.lock ./
+COPY src/ ./src/
 
 # Install dependencies
 RUN uv sync --frozen
-
-# Copy application source code
-COPY src/ ./src/
 
 # Expose port (Render will set PORT environment variable)
 EXPOSE 8000
