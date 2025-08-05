@@ -6,8 +6,12 @@ services:
     plan: free
     region: oregon
     repo: https://github.com/shibyan-ai-engineer/production-email-agent
+    branch: main
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
+    autoDeploy: true
+    buildCommand: ""
+    startCommand: ""
     envVars:
       - key: OPENAI_API_KEY
         sync: false
