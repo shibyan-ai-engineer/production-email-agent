@@ -9,6 +9,10 @@ from langgraph.store.redis import RedisStore
 from langgraph.types import Command, interrupt
 from langgraph.checkpoint.redis import RedisSaver
 from dotenv import load_dotenv
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.store.memory import InMemoryStore
+
+
 
 from .tools import get_tools, get_tools_by_name
 from .tools.default.prompt_templates import HITL_TOOLS_PROMPT
@@ -520,23 +524,25 @@ email_assistant_hitl.add_node("response_agent", compiled_response_agent)
 email_assistant_hitl.add_edge(START, "triage_router")
 # Note: triage_router uses Command for conditional routing
 
-def get_compiled_email_assistant_hitl():
-    """Get compiled HITL email assistant with Redis context management.
+# def get_compiled_email_assistant_hitl():
+#     """Get compiled HITL email assistant with Redis context management.
     
-    This function uses proper context managers for Redis components as recommended
-    in the LangGraph documentation for memory persistence.
+#     This function uses proper context managers for Redis components as recommended
+#     in the LangGraph documentation for memory persistence.
     
-    Returns:
-        Compiled StateGraph with Redis store and checkpointer
-    """
-    # Get Redis URL from environment variable, fallback to localhost for development
-    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+#     Returns:
+#         Compiled StateGraph with Redis store and checkpointer
+#     """
+#     # Get Redis URL from environment variable, fallback to localhost for development
+#     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
     
-    with RedisStore.from_conn_string(redis_url) as store, \
-         RedisSaver.from_conn_string(redis_url) as checkpointer:
-        store.setup()
-        checkpointer.setup()
-        return email_assistant_hitl.compile(checkpointer=checkpointer, store=store)
+#     with RedisStore.from_conn_string(redis_url) as store, \
+#          RedisSaver.from_conn_string(redis_url) as checkpointer:
+#         store.setup()
+#         checkpointer.setup()
+#         return email_assistant_hitl.compile(checkpointer=checkpointer, store=store)
 
 # For backward compatibility, provide the compiled agent directly
-compiled_email_assistant_hitl = get_compiled_email_assistant_hitl()
+checkpointer = InMemorySaver()
+store = InMemoryStore()
+compiled_email_assistant_hitl = email_assistant_hitl.compile(checkpointer=checkpointer, store=store)
