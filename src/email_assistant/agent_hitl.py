@@ -1,6 +1,5 @@
 """Email assistant agent with Human-in-the-Loop (HITL) capabilities."""
 
-import os
 from typing import Literal
 from langchain.chat_models import init_chat_model
 from langgraph.graph import StateGraph, START, END
@@ -9,9 +8,7 @@ from langgraph.store.redis import RedisStore
 from langgraph.types import Command, interrupt
 from langgraph.checkpoint.redis import RedisSaver
 from dotenv import load_dotenv
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.store.memory import InMemoryStore
-
+import os
 
 
 from .tools import get_tools, get_tools_by_name
@@ -60,8 +57,7 @@ def get_memory(store, namespace, default_content=None):
     """
     # Search for existing memory with namespace and key
     user_preferences = store.get(namespace, "user_preferences")
-
-    print(f"Searching for user preferences in namespace {namespace}...")
+    
     # If memory exists, return its content (the value)
     if user_preferences:
         return user_preferences.value
@@ -72,7 +68,6 @@ def get_memory(store, namespace, default_content=None):
         store.put(namespace, "user_preferences", default_content)
         user_preferences = default_content
     
-    print("final_user_preferences:", user_preferences)
     # Return the default content
     return user_preferences 
 
@@ -96,9 +91,6 @@ def update_memory(store, namespace, messages):
             {"role": "system", "content": MEMORY_UPDATE_INSTRUCTIONS.format(current_profile=current_profile, namespace=namespace)},
         ] + messages
     )
-
-    print("to_update_final_user_preferences:", result)
-
     # Save the updated memory to the store
     store.put(namespace, "user_preferences", result.user_preferences)
 
@@ -524,25 +516,25 @@ email_assistant_hitl.add_node("response_agent", compiled_response_agent)
 email_assistant_hitl.add_edge(START, "triage_router")
 # Note: triage_router uses Command for conditional routing
 
-# def get_compiled_email_assistant_hitl():
-#     """Get compiled HITL email assistant with Redis context management.
+def get_compiled_email_assistant_hitl():
+    """Get compiled HITL email assistant with Redis context management.
     
-#     This function uses proper context managers for Redis components as recommended
-#     in the LangGraph documentation for memory persistence.
+    This function uses proper context managers for Redis components as recommended
+    in the LangGraph documentation for memory persistence.
     
-#     Returns:
-#         Compiled StateGraph with Redis store and checkpointer
-#     """
-#     # Get Redis URL from environment variable, fallback to localhost for development
-#     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+    Returns:
+        Compiled StateGraph with Redis store and checkpointer
+    """
+
+
+    # Get Redis URL from environment variable, fallback to localhost for development
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
     
-#     with RedisStore.from_conn_string(redis_url) as store, \
-#          RedisSaver.from_conn_string(redis_url) as checkpointer:
-#         store.setup()
-#         checkpointer.setup()
-#         return email_assistant_hitl.compile(checkpointer=checkpointer, store=store)
+    with RedisStore.from_conn_string(redis_url) as store, \
+         RedisSaver.from_conn_string(redis_url) as checkpointer:
+        store.setup()
+        checkpointer.setup()
+        return email_assistant_hitl.compile(checkpointer=checkpointer, store=store)
 
 # For backward compatibility, provide the compiled agent directly
-checkpointer = InMemorySaver()
-store = InMemoryStore()
-compiled_email_assistant_hitl = email_assistant_hitl.compile(checkpointer=checkpointer, store=store)
+compiled_email_assistant_hitl = get_compiled_email_assistant_hitl()
